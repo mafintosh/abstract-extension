@@ -68,6 +68,10 @@ Removes the message from the pairing instance.
 
 The local id of the message. Send this over the wire instead of the message name after exchanging the initial message names.
 
+#### `const bool = msg.remoteSupports()`
+
+True if the remote also supports this message. Note that nothing bad will having from sending a message the remote does not support.
+
 #### `const buffer = msg.encode(message)`
 
 Encode a message to a buffer based on the message encoding.

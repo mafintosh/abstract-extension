@@ -13,7 +13,7 @@ class Message {
     return this.encoding.encode(message)
   }
 
-  paired () {
+  remoteSupports () {
     return !!(this.pair && this.pair.map && this.pair.map[this.id] === this)
   }
 
