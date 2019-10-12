@@ -1,12 +1,12 @@
 const codecs = require('codecs')
 
 class Message {
-  constructor (matcher, name, handlers = {}) {
+  constructor (pair, name, handlers = {}) {
     this.id = 0
     this.name = name
     this.encoding = codecs(handlers.encoding || 'binary')
     this.handlers = handlers
-    this.matcher = matcher
+    this.pair = pair
   }
 
   encode (message) {
@@ -14,7 +14,7 @@ class Message {
   }
 
   paired () {
-    return !!(this.matcher && this.matcher.map && this.matcher.map[this.id] === this)
+    return !!(this.pair && this.pair.map && this.pair.map[this.id] === this)
   }
 
   onmessage (buf, context) {
@@ -32,13 +32,13 @@ class Message {
   }
 
   get destroyed () {
-    return this.matcher === null
+    return this.pair === null
   }
 
   destroy () {
-    if (this.matcher === null) return
-    this.matcher._remove(this)
-    this.matcher = null
+    if (this.pair === null) return
+    this.pair._remove(this)
+    this.pair = null
   }
 
   static createMessagePair (handlers = null) {
