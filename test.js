@@ -6,15 +6,18 @@ tape('basic', function (t) {
 
   const a = new MessagePair({
     onnamesupdate () {
-      b.onnames(a.names())
+      pb.update(a.names())
     }
   })
 
   const b = new MessagePair({
     onnamesupdate () {
-      a.onnames(b.names())
+      pa.update(b.names())
     }
   })
+
+  const pa = a.remote()
+  const pb = b.remote()
 
   const ma = a.add('b', {
     encoding: 'utf-8',
@@ -32,22 +35,22 @@ tape('basic', function (t) {
 
   t.same(ma.id, 0)
   t.same(mb.id, 0)
-  b.onmessage(ma.id, ma.encode('to b'))
-  a.onmessage(mb.id, mb.encode('to a'))
+  pb.onmessage(ma.id, ma.encode('to b'))
+  pa.onmessage(mb.id, mb.encode('to a'))
 
   a.add('a')
 
   t.same(ma.id, 1)
   t.same(mb.id, 0)
-  b.onmessage(ma.id, ma.encode('to b'))
-  a.onmessage(mb.id, mb.encode('to a'))
+  pb.onmessage(ma.id, ma.encode('to b'))
+  pa.onmessage(mb.id, mb.encode('to a'))
 
   b.add('c')
 
   t.same(ma.id, 1)
   t.same(mb.id, 0)
-  b.onmessage(ma.id, ma.encode('to b'))
-  a.onmessage(mb.id, mb.encode('to a'))
+  pb.onmessage(ma.id, ma.encode('to b'))
+  pa.onmessage(mb.id, mb.encode('to a'))
 })
 
 tape('extendable', function (t) {

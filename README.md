@@ -35,11 +35,12 @@ const n = another.add('message-name')
 console.log('remote id of this message is', n.id)
 
 // pair the two by exchanging the message names once
-messages.onnames(another.names())
+const remote = messages.remote()
+remote.update(another.names())
 
 // then pass the id and message
 // will trigger m.onmessage
-messages.onmessage(n.id, n.encode('hi'))
+remote.onmessage(n.id, n.encode('hi'))
 ```
 
 ## API
@@ -71,18 +72,22 @@ The local id of the message. Send this over the wire instead of the message name
 
 Encode a message to a buffer based on the message encoding.
 
-#### `messages.onmessage(remoteId, message, [context])`
-
-Call this when you receive a message. Will match the remoteId internally and call the relevant `msg.onmessage` handler
-with the decoded message.
-
 #### `const list = messages.names()`
 
-Returns a sorted list of message names. You need to pass this to another pairing instance somehow.
+Returns a sorted list of message names. You need to pass this to another remote pairing instance somehow.
 
-#### `messages.onnames(remoteNames)`
+#### `const remote = messages.remote()`
 
-Call this with the remote list of names.
+Call this to setup remote pairing.
+
+#### `remote.update(names)`
+
+Pass the names of another instance to setup the pairing
+
+#### `remote.onmessage(id, message, [context])`
+
+Pair the remote id with the corresponding local message and call the onmessage handler.
+Optionally pass a context object that is simply passed along to the `message.onmessage` function
 
 ## License
 

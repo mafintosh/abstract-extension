@@ -46,13 +46,35 @@ class Message {
   }
 }
 
+class Remote {
+  constructor (pair) {
+    this.pair = pair
+    this.remote = null
+    this.map = null
+    this.changes = 0
+  }
+
+  update (remote) {
+    this.remote = remote
+    this.changes = 0
+  }
+
+  onmessage (id, message, context = null) {
+    if (this.changes !== this.pair.changes) {
+      this.map = this.remote ? match(this.pair.local, this.remote) : null
+      this.changes = this.pair.changes
+    }
+    const m = this.map && this.map[id]
+    if (m) m.onmessage(message, context)
+  }
+}
+
 class MessagePair {
   constructor (handlers = null, M = Message) {
     this.local = []
-    this.remote = []
-    this.map = null
     this.handlers = handlers
     this.Message = M
+    this.changes = 1
   }
 
   get length () {
@@ -73,6 +95,8 @@ class MessagePair {
 
   add (name, handlers) {
     const m = new this.Message(this, name, handlers)
+
+    this.changes++
     this.local.push(m)
     this.local.sort(sortMessages)
     for (let i = 0; i < this.local.length; i++) {
@@ -85,16 +109,16 @@ class MessagePair {
     }
 
     if (this.handlers && this.handlers.onnamesupdate) this.handlers.onnamesupdate()
-    if (this.remote) this.map = match(this.local, this.remote)
 
     return m
   }
 
-  createMessage (pair, name, handlers) {
-    return new Message(pair, name, handlers)
+  remote () {
+    return new Remote(this)
   }
 
   _remove (m) {
+    this.changes++
     this.local.splice(m.id, 1)
     m.id = -1
     if (this.handlers && this.handlers.onnamesupdate) this.handlers.onnamesupdate()
@@ -106,16 +130,6 @@ class MessagePair {
       names[i] = this.local[i].name
     }
     return names
-  }
-
-  onnames (remote) {
-    this.remote = remote
-    this.map = match(this.local, remote)
-  }
-
-  onmessage (id, message, context = null) {
-    const m = this.map && this.map[id]
-    if (m) m.onmessage(message, context)
   }
 }
 
