@@ -1,6 +1,6 @@
 {
   "name": "message-pair",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Small module to implement a \"message name to id\" pairing protocol",
   "main": "index.js",
   "dependencies": {
