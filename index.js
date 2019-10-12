@@ -55,6 +55,14 @@ class MessagePair {
     this.Message = M
   }
 
+  get length () {
+    return this.local.length
+  }
+
+  [Symbol.iterator] () {
+    return this.local[Symbol.iterator]()
+  }
+
   get (name) {
     // technically we can bisect here, but yolo
     for (const m of this.local) {

@@ -6,8 +6,7 @@ const local = new MessagePair({
   }
 })
 
-const remote = new MessagePair({
-})
+const remote = new MessagePair({})
 
 const l = local.add('hi', {
   encoding: 'json',
@@ -27,5 +26,5 @@ const r = remote.add('hi', {
 
 remote.add('z') // dummy message
 
-remote.onmessage(l.id, l.send({ hi: 'world' }))
-local.onmessage(r.id, r.send({ hi: 'world' }))
+remote.onmessage(l.id, l.encode({ hi: 'world' }))
+local.onmessage(r.id, r.encode({ hi: 'world' }))
