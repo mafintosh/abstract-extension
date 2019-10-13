@@ -155,4 +155,4 @@ function match (local, remote) {
   return map
 }
 
-module.exports = Message
+module.exports = AbstractExtension
