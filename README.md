@@ -1,58 +1,43 @@
-# message-pair
+# abstract-extension
 
-Small module to implement a "message name to id" pairing protocol, useful for implementing stuff like user defined messages
-in an RPC system without having to send over the full message name every time.
-
-... you probably don't need this :)
+Small abstraction to help build out user defined extension messages in an RPC system.
 
 ```
-npm install message-pair
+npm install abstract-extension
 ```
 
-## Usage
-
-``` js
-const MessagePair = require('message-pair')
-
-const messages = new MessagePair()
-
-const m = messages.add('message-name', {
-  onmessage (message) {
-    console.log('received message', message)
-  }
-})
-
-// local id of this message is 0
-console.log('local id of this message is', m.id)
-
-const another = new MessagePair()
-
-// add as many messages as you want
-another.add('another-message-name')
-const n = another.add('message-name')
-
-// remote id of "message-name" is 1
-console.log('remote id of this message is', n.id)
-
-// pair the two by exchanging the message names once
-const remote = messages.remote()
-remote.update(another.names())
-
-// then pass the id and message
-// will trigger m.onmessage
-remote.onmessage(n.id, n.encode('hi'))
-```
+See [hypercore](https://github.com/mafintosh/hypercore) and [hypercore-protocol](https://github.com/mafintosh/hypercore-protocol)
+for a full example on how to use this
 
 ## API
 
-#### `const messages = new MessagePair(handlers)`
+#### `const AbstractExtension = require('abstract-encoding')`
 
-Create a new MessagePair instance.
+Imports the AbstractExtension class. You should extend this and add the functionality you need.
 
-Whenever the messages are updated `handler.onnamesupdate()` will
-be called if provided.
+#### `abstractExtension.destroy()`
 
-#### `const msg = messages.add(name, handlers)`
+Detroy an extension instance. Removes the message from the local pairing instance.
+
+#### `abstractExtension.id`
+
+The local id of the message. Send this over the wire instead of the message name after exchanging the initial message names.
+
+#### `const bool = abstractExtension.remoteSupports()`
+
+True if the remote also supports this message. Note that nothing bad will having from sending a message the remote does not support.
+
+#### `const buffer = abstractExtension.encode(message)`
+
+Encode a message to a buffer based on the message encoding.
+
+#### `const local = AbstractExtension.createLocal(handlers)`
+
+Create a local message pairing instance.
+
+Whenever the messages are updated `local.onextensionupdate()` will be called if provided.
+
+#### `const msg = local.add(name, handlers)`
 
 Add a new message. `name` should be the string name of a message.
 
@@ -60,31 +45,15 @@ Add a new message. `name` should be the string name of a message.
 * `handlers.onmessage(message, context)` is called when a message has been received and pairing.
 * `handlers.onerror(error, context)` is called when a message fails to decode.
 
-#### `msg.destroy()`
-
-Removes the message from the pairing instance.
-
-#### `msg.id`
-
-The local id of the message. Send this over the wire instead of the message name after exchanging the initial message names.
-
-#### `const bool = msg.remoteSupports()`
-
-True if the remote also supports this message. Note that nothing bad will having from sending a message the remote does not support.
-
-#### `const buffer = msg.encode(message)`
-
-Encode a message to a buffer based on the message encoding.
-
-#### `const list = messages.names()`
+#### `const list = local.names()`
 
 Returns a sorted list of message names. You need to pass this to another remote pairing instance somehow.
 
-#### `const remote = messages.remote()`
+#### `const remote = local.remote()`
 
 Call this to setup remote pairing.
 
-#### `remote.update(names)`
+#### `remote.update(localNames)`
 
 Pass the names of another instance to setup the pairing
 

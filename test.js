@@ -1,17 +1,17 @@
-const MessagePair = require('./')
+const Message = require('./')
 const tape = require('tape')
 
 tape('basic', function (t) {
   t.plan(4 * 3)
 
-  const a = new MessagePair({
-    onnamesupdate () {
+  const a = Message.createLocal({
+    onextensionupdate () {
       pb.update(a.names())
     }
   })
 
-  const b = new MessagePair({
-    onnamesupdate () {
+  const b = Message.createLocal({
+    onextensionupdate () {
       pa.update(b.names())
     }
   })
@@ -56,16 +56,16 @@ tape('basic', function (t) {
 tape('extendable', function (t) {
   t.plan(3)
 
-  class Extended extends MessagePair.Message {
+  class Extended extends Message {
     extended () {
       t.pass('was extended')
     }
   }
 
-  const a = Extended.createMessagePair()
+  const a = Extended.createLocal()
   const m = a.add('hello')
 
   t.ok(m instanceof Extended)
-  t.ok(m instanceof MessagePair.Message)
+  t.ok(m instanceof Message)
   m.extended()
 })

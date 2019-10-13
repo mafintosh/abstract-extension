@@ -1,12 +1,12 @@
 const codecs = require('codecs')
 
-class Message {
-  constructor (pair, name, handlers = {}) {
+class AbstractExtension {
+  constructor (local, name, handlers = {}) {
     this.id = 0
     this.name = name
     this.encoding = codecs(handlers.encoding || 'binary')
     this.handlers = handlers
-    this.pair = pair
+    this.local = local
   }
 
   encode (message) {
@@ -14,7 +14,7 @@ class Message {
   }
 
   remoteSupports () {
-    return !!(this.pair && this.pair.map && this.pair.map[this.id] === this)
+    return !!(this.local && this.local.map && this.local.map[this.id] === this)
   }
 
   onmessage (buf, context) {
@@ -32,83 +32,83 @@ class Message {
   }
 
   get destroyed () {
-    return this.pair === null
+    return this.local === null
   }
 
   destroy () {
-    if (this.pair === null) return
-    this.pair._remove(this)
-    this.pair = null
+    if (this.local === null) return
+    this.local._remove(this)
+    this.local = null
   }
 
-  static createMessagePair (handlers = null) {
-    return new MessagePair(handlers, this)
+  static createLocal (handlers = null) {
+    return new Local(handlers, this)
   }
 }
 
 class Remote {
-  constructor (pair) {
-    this.pair = pair
-    this.remote = null
+  constructor (local) {
+    this.local = local
+    this.names = null
     this.map = null
     this.changes = 0
   }
 
-  update (remote) {
-    this.remote = remote
+  update (names) {
+    this.names = names
     this.changes = 0
   }
 
   onmessage (id, message, context = null) {
-    if (this.changes !== this.pair.changes) {
-      this.map = this.remote ? match(this.pair.local, this.remote) : null
-      this.changes = this.pair.changes
+    if (this.changes !== this.local.changes) {
+      this.map = this.names ? match(this.local.messages, this.names) : null
+      this.changes = this.local.changes
     }
     const m = this.map && this.map[id]
     if (m) m.onmessage(message, context)
   }
 }
 
-class MessagePair {
-  constructor (handlers = null, M = Message) {
-    this.local = []
+class Local {
+  constructor (handlers = null, M) {
+    this.messages = []
     this.handlers = handlers
-    this.Message = M
+    this.Extension = M
     this.changes = 1
   }
 
   get length () {
-    return this.local.length
+    return this.messages.length
   }
 
   [Symbol.iterator] () {
-    return this.local[Symbol.iterator]()
+    return this.messages[Symbol.iterator]()
   }
 
   get (name) {
     // technically we can bisect here, but yolo
-    for (const m of this.local) {
+    for (const m of this.messages) {
       if (m.name === name) return m
     }
     return null
   }
 
   add (name, handlers) {
-    const m = new this.Message(this, name, handlers)
+    const m = new this.Extension(this, name, handlers)
 
     this.changes++
-    this.local.push(m)
-    this.local.sort(sortMessages)
-    for (let i = 0; i < this.local.length; i++) {
-      this.local[i].id = i
+    this.messages.push(m)
+    this.messages.sort(sortMessages)
+    for (let i = 0; i < this.messages.length; i++) {
+      this.messages[i].id = i
     }
 
-    if ((m.id > 0 && this.local[m.id - 1].name === m.name) || (m.id < this.local.length - 1 && this.local[m.id + 1].name === m.name)) {
+    if ((m.id > 0 && this.messages[m.id - 1].name === m.name) || (m.id < this.messages.length - 1 && this.messages[m.id + 1].name === m.name)) {
       this._remove(m)
       throw new Error('Cannot add multiple messages with the same name')
     }
 
-    if (this.handlers && this.handlers.onnamesupdate) this.handlers.onnamesupdate()
+    if (this.handlers && this.handlers.onextensionupdate) this.handlers.onextensionupdate()
 
     return m
   }
@@ -119,15 +119,15 @@ class MessagePair {
 
   _remove (m) {
     this.changes++
-    this.local.splice(m.id, 1)
+    this.messages.splice(m.id, 1)
     m.id = -1
-    if (this.handlers && this.handlers.onnamesupdate) this.handlers.onnamesupdate()
+    if (this.handlers && this.handlers.onextensionupdate) this.handlers.onextensionupdate()
   }
 
   names () {
-    const names = new Array(this.local.length)
+    const names = new Array(this.messages.length)
     for (let i = 0; i < names.length; i++) {
-      names[i] = this.local[i].name
+      names[i] = this.messages[i].name
     }
     return names
   }
@@ -155,6 +155,4 @@ function match (local, remote) {
   return map
 }
 
-MessagePair.Message = Message
-
-module.exports = MessagePair
+module.exports = Message
