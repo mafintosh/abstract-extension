@@ -94,7 +94,15 @@ class Local {
   }
 
   add (name, handlers) {
-    const m = new this.Extension(this, name, handlers)
+    let m
+
+    if (typeof handlers !== 'function') {
+      m = new this.Extension(this, name, handlers)
+    } else {
+      m = new this.Extension(this, name, {})
+      m.handlers = handlers(m) || {}
+      m.encoding = codecs(m.handlers.encoding || 'binary')
+    }
 
     this.changes++
     this.messages.push(m)

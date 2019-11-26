@@ -69,3 +69,14 @@ tape('extendable', function (t) {
   t.ok(m instanceof Message)
   m.extended()
 })
+
+tape('create from function', function (t) {
+  const a = Message.createLocal()
+
+  const m = a.add('hello', function (ext) {
+    t.ok(ext instanceof Message)
+  })
+
+  t.ok(m instanceof Message)
+  t.end()
+})
