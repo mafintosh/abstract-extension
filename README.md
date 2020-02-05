@@ -11,7 +11,7 @@ for a full example on how to use this
 
 ## API
 
-#### `const AbstractExtension = require('abstract-encoding')`
+#### `const AbstractExtension = require('abstract-extension')`
 
 Imports the AbstractExtension class. You should extend this and add the functionality you need.
 
