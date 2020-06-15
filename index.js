@@ -75,6 +75,7 @@ class Local {
     this.handlers = handlers
     this.Extension = M
     this.changes = 1
+    this.exclusive = true
   }
 
   get length () {
@@ -111,9 +112,11 @@ class Local {
       this.messages[i].id = i
     }
 
-    if ((m.id > 0 && this.messages[m.id - 1].name === m.name) || (m.id < this.messages.length - 1 && this.messages[m.id + 1].name === m.name)) {
-      this._remove(m)
-      throw new Error('Cannot add multiple messages with the same name')
+    if (this.exclusive) {
+      if ((m.id > 0 && this.messages[m.id - 1].name === m.name) || (m.id < this.messages.length - 1 && this.messages[m.id + 1].name === m.name)) {
+        this._remove(m)
+        throw new Error('Cannot add multiple messages with the same name')
+      }
     }
 
     if (this.handlers && this.handlers.onextensionupdate) this.handlers.onextensionupdate()
@@ -157,7 +160,7 @@ function match (local, remote) {
 
     if (l < r) i++
     else if (l > r) j++
-    else map[j++] = local[i++]
+    else map[j++] = local[i]
   }
 
   return map
